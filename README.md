@@ -132,8 +132,9 @@ cd workbuddy-manager
 下载 `WorkBuddy-Manager-on-Windows-win-v1.zip`，解压到任意目录
 （例：`C:\你的目录\WorkBuddy-Manager-on-Windows`）。
 
-压缩包与仓库 `main` 分支**逐字节一致**，只含下面这些文件，
-解压后按**相同的目录结构**复制到原版管理端：
+压缩包由仓库 `main` 分支导出，**内容与之一致**（包内文本统一为 Windows 换行 CRLF，
+`start-manager.ps1` 等三个脚本带 UTF-8 BOM，可直接被 PowerShell 读取）。
+压缩包只含下面这些文件，解压后按**相同的目录结构**复制到原版管理端：
 
 ```
 压缩包                              原版管理端
