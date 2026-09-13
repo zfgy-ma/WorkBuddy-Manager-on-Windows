@@ -17,9 +17,9 @@
 OpenAI 兼容接口全部由上游 [`workbuddy2api`](https://github.com/Sliverkiss/workbuddy2api)
 （Go 项目，Docker 部署）负责。本仓库**不含上游代码，也不替代上游**。
 
-### 2. 单独 clone 本仓库无法运行
+### 2. 单独下载本仓库无法运行
 
-本仓库**只有被改动的几个文件，没有完整源码**，clone 下来什么也跑不起来
+本仓库**只有被改动的几个文件，没有完整源码**，单独 clone 或解压下来什么也跑不起来
 —— 没有入口程序、没有前端、没有依赖清单。
 
 完整运行需要三样东西同时就位：
@@ -124,31 +124,19 @@ cd workbuddy-manager
 > 目录名建议保持 `workbuddy-manager`，并与上游 `workbuddy2api` **同级**，
 > 因为 `start-manager.ps1` 会按同级目录自动推算上游路径。
 
-### 第三步：用本仓库的文件覆盖原版
+### 第三步：用发行版压缩包覆盖原版
 
-**方式 A：用 git 拉取（推荐，便于后续更新）**
+**方式 A：下载发行版压缩包（推荐）**
 
-`git checkout` 会按原目录结构取出文件，不会碰你其它文件：
+到 [Releases](https://github.com/zfgy-ma/WorkBuddy-Manager-on-Windows/releases/latest)
+下载 `WorkBuddy-Manager-on-Windows-win-v1.zip`，解压到任意目录
+（例：`C:\你的目录\WorkBuddy-Manager-on-Windows`）。
 
-```powershell
-# 仍在 workbuddy-manager 目录下
-git remote add winpatch https://github.com/zfgy-ma/WorkBuddy-Manager-on-Windows.git
-git fetch winpatch
-git checkout winpatch/main -- server/services/wb2api.py server/services/updater.py .gitignore start-manager.ps1 stop-manager.ps1 status-manager.ps1 部署说明-Windows.md
-```
-
-> 两点注意：
->
-> 1. `git checkout` 会把取到的文件放进暂存区（`git status` 显示为 `A`/`M`），
->    不想要它们进版本库就别 `git commit`，不影响运行；
-> 2. 本仓库是公开仓库，`git fetch` 无需登录凭证（若你曾配置代理或凭证助手可能仍会提示）。
-
-**方式 B：下载后直接覆盖（最直观）**
-
-下载本仓库压缩包，把里面的文件按**相同的目录结构**复制到原版管理端：
+压缩包与仓库 `main` 分支**逐字节一致**，只含下面这些文件，
+解压后按**相同的目录结构**复制到原版管理端：
 
 ```
-本仓库                              原版管理端
+压缩包                              原版管理端
 ├─ server/services/wb2api.py   →   server\services\wb2api.py   （覆盖）
 ├─ server/services/updater.py  →   server\services\updater.py  （覆盖）
 ├─ .gitignore                  →   .gitignore                  （覆盖）
@@ -158,7 +146,8 @@ git checkout winpatch/main -- server/services/wb2api.py server/services/updater.
 └─ 部署说明-Windows.md         →   部署说明-Windows.md         （新增）
 ```
 
-一条命令完成（假设本仓库解压在 `C:\你的目录\WorkBuddy-Manager-on-Windows`）：
+一条命令完成（假设压缩包解压在 `C:\你的目录\WorkBuddy-Manager-on-Windows`，
+且原版管理端在其同级目录 `workbuddy-manager`）：
 
 ```powershell
 cd C:\你的目录\WorkBuddy-Manager-on-Windows
@@ -168,9 +157,19 @@ Copy-Item .\server, .\start-manager.ps1, .\stop-manager.ps1, .\status-manager.ps
 覆盖成功的标志：`git status`（若原版是 git 克隆）显示
 `server/services/wb2api.py`、`server/services/updater.py`、`.gitignore` 三处被修改。
 
-> 若你拉取的原版比 `00d623c` 更新，且这两处代码被上游改过，
-> 直接覆盖会**覆盖掉上游的新改动**。这种情况请先比对，再手工把那两行
-> `encoding='utf-8', errors='replace'` 加上（见上文「修的是什么问题」）。
+**方式 B：用 git 拉取（不下载压缩包时）**
+
+`git checkout` 会按原目录结构取出文件，不会碰你其它文件：
+
+```powershell
+# 仍在 workbuddy-manager 目录下
+git remote add wbwin https://github.com/zfgy-ma/WorkBuddy-Manager-on-Windows.git
+git fetch wbwin
+git checkout wbwin/main -- server/services/wb2api.py server/services/updater.py .gitignore start-manager.ps1 stop-manager.ps1 status-manager.ps1 部署说明-Windows.md
+```
+
+> 注意：`git checkout` 会把取到的文件放进暂存区（`git status` 显示为 `A`/`M`），
+> 不想要它们进版本库就别 `git commit`，不影响运行。
 
 ### 第四步：构建前端与 Python 环境
 
@@ -345,27 +344,22 @@ proc = subprocess.run(cmd, capture_output=True, timeout=25,
 
 ---
 
-## 兼容性
+## 验证情况
+
+本体只做了两处解码修复，不打散原版逻辑。已在下列环境实测通过：
 
 | 项目 | 版本 |
 |---|---|
-| 原版管理端 | 默认分支 `00d623c`（v1.0.11 标签之后 3 个提交） |
+| 原版管理端 | 默认分支 `00d623c` |
 | 上游 workbuddy2api | 最新 main 分支 |
 | 验证环境 | Windows 11 + Python 3.12 + Node 24 + Docker Desktop 29 |
 
-替换文件后，`python -m unittest discover -s server/tests -t .` 单元测试全部通过：
+覆盖后 `python -m unittest discover -s server/tests -t .` 结果：
+**102 个测试全部通过**（原版自带用例，未改动测试代码）。
 
-| 原版版本 | 覆盖后测试结果 |
-|---|---|
-| 默认分支 `00d623c` | 102 个测试通过 |
-| `v1.0.11` 标签 | 94 个测试通过 |
-
-两个版本的 `wb2api.py`、`updater.py`、`.gitignore` 与被改动的三处完全一致，
-因此同一份替换文件可同时适用于它们。
-
-> 原版后续升级后，若这两处代码未变，替换文件仍可直接覆盖使用；
-> 若上游改动了这两处，请按本文「原理说明」手工把那两行补上，
-> 不要整体覆盖，以免覆盖掉上游的新改动。
+> 本仓库不承诺跨版本的兼容性判断。若你拉取的原版比 `00d623c` 更新，
+> 请自行比对 `wb2api.py`、`updater.py` 两个文件的改动是否与本文一致；
+> 若上游已改过这两处，**不要整体覆盖**，按本文「原理说明」手工补上那两行即可。
 
 ---
 
