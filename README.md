@@ -1,9 +1,9 @@
 # WorkBuddy Manager-on-Windows
 
-**WorkBuddy Manager 的 Windows 兼容补丁仓库**
+**WorkBuddy Manager 的 Windows 兼容修复仓库**
 
 本仓库是 [ithtelab/workbuddy-manager](https://github.com/ithtelab/workbuddy-manager) 的
-**Windows 兼容修复补丁**，只做一件事：让原版管理端在 Windows 上恢复正常运行。
+**Windows 兼容修复**，只做一件事：让原版管理端在 Windows 上恢复正常运行。
 
 **不新增功能、不改动业务逻辑、不含上游、不含原版完整源码。**
 
@@ -19,8 +19,8 @@ OpenAI 兼容接口全部由上游 [`workbuddy2api`](https://github.com/Sliverki
 
 ### 2. 单独 clone 本仓库无法运行
 
-本仓库**只有补丁文件，没有原版源码**，clone 下来什么也跑不起来 —— 没有入口程序、
-没有前端、没有依赖清单。
+本仓库**只有被改动的几个文件，没有完整源码**，clone 下来什么也跑不起来
+—— 没有入口程序、没有前端、没有依赖清单。
 
 完整运行需要三样东西同时就位：
 
@@ -28,7 +28,7 @@ OpenAI 兼容接口全部由上游 [`workbuddy2api`](https://github.com/Sliverki
 |---|---|---|
 | 上游 `workbuddy2api` | [Sliverkiss/workbuddy2api](https://github.com/Sliverkiss/workbuddy2api) | 账号池调度 + OpenAI 兼容接口（Docker） |
 | 原版管理端源码 | [ithtelab/workbuddy-manager](https://github.com/ithtelab/workbuddy-manager) | 管理界面 + 对外网关 |
-| Windows 适配补丁 | **本仓库** | 让管理端在 Windows 上跑通 |
+| Windows 适配文件 | **本仓库** | 覆盖到原版对应位置，让管理端在 Windows 上跑通 |
 
 三者的正确组合方式见下方[使用方法](#使用方法)。
 
@@ -36,9 +36,9 @@ OpenAI 兼容接口全部由上游 [`workbuddy2api`](https://github.com/Sliverki
 
 | 分支 | 内容 | 用途 |
 |---|---|---|
-| `main` | **只有新增/修改部分**（本 README 所述内容） | 默认分支，给原版打补丁用 |
+| `main` | **只有新增/修改部分**（本 README 所述内容） | 默认分支，覆盖到原版用 |
 | `archive/original` | 原版管理端完整源码（对应 `00d623c`） | 仅作备份，便于对照 |
-| `archive/original-with-patch` | 原版 + 补丁的完整代码 | 仅作备份，便于对照 |
+| `archive/original-with-patch` | 原版 + 修复后的完整代码 | 仅作备份，便于对照 |
 
 **只有 `main` 分支是给使用者用的。** `archive/` 分支为备份，内容属原版作者，
 请以 [ithtelab/workbuddy-manager](https://github.com/ithtelab/workbuddy-manager) 为准。
@@ -50,20 +50,21 @@ OpenAI 兼容接口全部由上游 [`workbuddy2api`](https://github.com/Sliverki
 
 ---
 
-## 本仓库内容：仅新增/修改部分
+## 本仓库内容：完整的替换文件，覆盖即可
 
-本仓库**不包含原版的那 155 个文件**，只保留以下「3 新增 + 1 新增文档 + 3 补丁」。
+本仓库**不搬运原版那 155 个文件**，只放被改动的文件，且**保持与原版相同的目录结构**：
 
-### 一、新增文件（直接复制到原版管理端根目录）
-
-| 文件 | 用途 |
+| 文件 | 相对原版的改动 |
 |---|---|
-| `start-manager.ps1` | 启动管理端，等价于原版 Linux 版 systemd 服务，内置全部环境变量 |
-| `stop-manager.ps1` | 停止管理端，并清理残留的端口监听进程 |
-| `status-manager.ps1` | 查看管理端进程、端口、健康检查与上游容器状态 |
-| `部署说明-Windows.md` | 本机部署说明，含 PowerShell 环境变量写法差异 |
+| `server/services/wb2api.py` | 修复容器日志解码（完整文件，可直接覆盖） |
+| `server/services/updater.py` | 修复 git 输出解码（完整文件，可直接覆盖） |
+| `.gitignore` | 增加忽略 `旧内容/`（完整文件，可直接覆盖） |
+| `start-manager.ps1` | **新增**：启动管理端，等价原版 Linux 的 systemd 服务 |
+| `stop-manager.ps1` | **新增**：停止管理端并清理残留端口进程 |
+| `status-manager.ps1` | **新增**：查看进程、端口、健康检查、上游容器状态 |
+| `部署说明-Windows.md` | **新增**：本机部署说明 |
 
-### 二、修改文件（只提供补丁，需应用到原版源码）
+### 修的是什么问题
 
 原版用 `subprocess(..., text=True)` 读取子进程输出。
 Python 在 Windows 上会按系统区域编码（简体中文系统为 **GBK**）解码，
@@ -75,19 +76,15 @@ UnicodeDecodeError: 'gbk' codec can't decode byte 0xaa in position 158
 
 **实际影响**：「任务记录」页读容器日志的线程崩溃，自动任务日志采集完全失效。
 
-| 补丁文件 | 目标文件 | 修复内容 |
+| 文件 | 函数 | 修复内容 |
 |---|---|---|
-| `patches/wb2api-编码修复.patch` | `server/services/wb2api.py` | `read_container_logs()` 显式用 UTF-8 解码 |
-| `patches/updater-编码修复.patch` | `server/services/updater.py` | `_local_upstream_head()` 显式用 UTF-8 解码 |
-| `patches/gitignore-忽略旧内容.patch` | `.gitignore` | 忽略本地备份目录 `旧内容/` |
-
-修复方式均为：`text=True` → `encoding='utf-8', errors='replace'`。
+| `server/services/wb2api.py` | `read_container_logs()` | `text=True` → `encoding='utf-8', errors='replace'` |
+| `server/services/updater.py` | `_local_upstream_head()` | 同上 |
 
 > Linux 下行为完全不变（原本就是 UTF-8），因此该修复对原版无副作用。
 > `errors='replace'` 保证个别坏字节只显示为 `?`，不会让整个功能崩溃。
 
 ---
-
 ## 使用方法
 
 > 前提：本仓库需要与原版管理端源码**配合使用**，不能单独运行。
@@ -99,7 +96,7 @@ UnicodeDecodeError: 'gbk' codec can't decode byte 0xaa in position 158
 | Python | ≥ 3.11 | 运行管理端 |
 | Node.js | ≥ 18 | 构建前端（仅首次需要） |
 | Docker Desktop | 已运行 | 跑上游 workbuddy2api |
-| Git | 任意版本 | 拉取代码与应用补丁 |
+| Git | 任意版本 | 拉取代码 |
 
 ### 第一步：部署上游 workbuddy2api（必需，不可省略）
 
@@ -127,49 +124,54 @@ cd workbuddy-manager
 > 目录名建议保持 `workbuddy-manager`，并与上游 `workbuddy2api` **同级**，
 > 因为 `start-manager.ps1` 会按同级目录自动推算上游路径。
 
-### 第三步：应用本仓库（二选一）
+### 第三步：用本仓库的文件覆盖原版
 
-**方式 A：用 git 取文件（推荐）**
+**方式 A：用 git 拉取（推荐，便于后续更新）**
 
-⚠️ 不要用 `git merge`：本仓库的 `README.md`、`.gitignore` 与原版同名，
-merge 会触发 add/add 冲突，或直接覆盖掉原版这两份文件。
-
-正确做法是只取本仓库的文件，不合并历史：
+`git checkout` 会按原目录结构取出文件，不会碰你其它文件：
 
 ```powershell
 # 仍在 workbuddy-manager 目录下
 git remote add winpatch https://github.com/zfgy-ma/WorkBuddy-Manager-on-Windows.git
 git fetch winpatch
-git checkout winpatch/main -- start-manager.ps1 stop-manager.ps1 status-manager.ps1 部署说明-Windows.md patches
-
-# 应用 3 个补丁
-git apply patches\wb2api-编码修复.patch
-git apply patches\updater-编码修复.patch
-git apply patches\gitignore-忽略旧内容.patch
+git checkout winpatch/main -- server/services/wb2api.py server/services/updater.py .gitignore start-manager.ps1 stop-manager.ps1 status-manager.ps1 部署说明-Windows.md
 ```
 
 > 两点注意：
 >
-> 1. `git checkout` 会把取到的文件放进暂存区（`git status` 显示为 `A`），
+> 1. `git checkout` 会把取到的文件放进暂存区（`git status` 显示为 `A`/`M`），
 >    不想要它们进版本库就别 `git commit`，不影响运行；
 > 2. 本仓库目前是**私有仓库**，`git fetch` 会要求 GitHub 登录凭证。
->    拿不到权限时请改用方式 B（直接下载文件）。
+>    拿不到权限时请改用方式 B。
 
-**方式 B：手工复制**
+**方式 B：下载后直接覆盖（最直观）**
 
-1. 下载本仓库，把 4 个新增文件复制到原版管理端**根目录**；
-2. 把 `patches\` 目录一并复制过去，再逐个应用补丁：
+下载本仓库压缩包，把里面的文件按**相同的目录结构**复制到原版管理端：
 
-```powershell
-git apply patches\wb2api-编码修复.patch
-git apply patches\updater-编码修复.patch
-git apply patches\gitignore-忽略旧内容.patch
+```
+本仓库                              原版管理端
+├─ server/services/wb2api.py   →   server\services\wb2api.py   （覆盖）
+├─ server/services/updater.py  →   server\services\updater.py  （覆盖）
+├─ .gitignore                  →   .gitignore                  （覆盖）
+├─ start-manager.ps1           →   start-manager.ps1           （新增）
+├─ stop-manager.ps1            →   stop-manager.ps1            （新增）
+├─ status-manager.ps1          →   status-manager.ps1          （新增）
+└─ 部署说明-Windows.md         →   部署说明-Windows.md         （新增）
 ```
 
-补丁应用成功的标志：`git status` 显示 `server/services/wb2api.py`、
-`server/services/updater.py`、`.gitignore` 三处被修改。
-若提示 `patch does not apply`，说明原版这两处代码已变动，
-请按本文「[原理说明](#原理说明为什么-windows-上会出错)」自行调整。
+一条命令完成（假设本仓库解压在 `C:\你的目录\WorkBuddy-Manager-on-Windows`）：
+
+```powershell
+cd C:\你的目录\WorkBuddy-Manager-on-Windows
+Copy-Item .\server, .\start-manager.ps1, .\stop-manager.ps1, .\status-manager.ps1, .\.gitignore, .\部署说明-Windows.md -Destination ..\workbuddy-manager -Recurse -Force
+```
+
+覆盖成功的标志：`git status`（若原版是 git 克隆）显示
+`server/services/wb2api.py`、`server/services/updater.py`、`.gitignore` 三处被修改。
+
+> 若你拉取的原版比 `00d623c` 更新，且这两处代码被上游改过，
+> 直接覆盖会**覆盖掉上游的新改动**。这种情况请先比对，再手工把那两行
+> `encoding='utf-8', errors='replace'` 加上（见上文「修的是什么问题」）。
 
 ### 第四步：构建前端与 Python 环境
 
@@ -209,7 +211,6 @@ Select-String -Path .\data\manager.err.log -Pattern '初始管理员' -Context 0
 授权成功后自动签到并纳管，之后即可在「密钥」页创建调用密钥。
 
 ---
-
 ## 常用命令
 
 ```powershell
@@ -302,7 +303,6 @@ $env:WB_DATA_DIR = './data'
 | 开机自启 | `systemctl enable` | 未实现（需自行放入任务计划程序） |
 
 ---
-
 ## 原理说明：为什么 Windows 上会出错
 
 原版这两处代码用 `text=True` 让 Python 自动解码子进程输出：
@@ -354,19 +354,19 @@ proc = subprocess.run(cmd, capture_output=True, timeout=25,
 | 上游 workbuddy2api | 最新 main 分支 |
 | 验证环境 | Windows 11 + Python 3.12 + Node 24 + Docker Desktop 29 |
 
-验证方式：全新 clone 原版 → 取本仓库文件 → 应用 3 个补丁 →
-`python -m unittest discover -s server/tests -t .`，单元测试全部通过：
+替换文件后，`python -m unittest discover -s server/tests -t .` 单元测试全部通过：
 
-| 原版版本 | 补丁是否干净应用 | 测试结果 |
-|---|---|---|
-| 默认分支 `00d623c` | 是 | 102 个测试通过 |
-| `v1.0.11` 标签 | 是 | 94 个测试通过 |
+| 原版版本 | 覆盖后测试结果 |
+|---|---|
+| 默认分支 `00d623c` | 102 个测试通过 |
+| `v1.0.11` 标签 | 94 个测试通过 |
 
 两个版本的 `wb2api.py`、`updater.py`、`.gitignore` 与被改动的三处完全一致，
-因此同一份补丁可同时适用于它们。
+因此同一份替换文件可同时适用于它们。
 
-> 原版后续升级后，若这两处代码未变，补丁仍可直接应用；
-> 若已变动导致冲突，请重新按本文「原理说明」自行调整。
+> 原版后续升级后，若这两处代码未变，替换文件仍可直接覆盖使用；
+> 若上游改动了这两处，请按本文「原理说明」手工把那两行补上，
+> 不要整体覆盖，以免覆盖掉上游的新改动。
 
 ---
 

@@ -1,7 +1,41 @@
-# 本仓库为补丁仓库，不应出现原版运行时数据
-data/
-venv/
 node_modules/
-web/out/
-旧内容/
+.next/
+out/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 敏感数据与运行时数据
+data/
+.devdata/
+.env
+.env.local
+*.db
+*.db-wal
+*.db-shm
+users.json
+config.json
+# 部署时写入的版本标记（运行期生成，不提交）
+.version
+
+# 开发参考仓库（不提交）
+.ref/
+
+# 编辑器 / 系统
+.DS_Store
+.idea/
+.vscode/
+.zcode/
 *.log
+next-env.d.ts
+*.tsbuildinfo
+
+# 调试用临时截图
+.*.png
+
+# 安全测试脚本（临时）
+.sec*.py
+
+# 待人工确认去留的文件（本地暂存目录，不提交）
+旧内容/
