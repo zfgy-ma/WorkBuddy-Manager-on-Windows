@@ -304,7 +304,8 @@ def _local_upstream_head() -> str:
     """本地上游仓库当前的 commit（短 sha）。"""
     try:
         proc = subprocess.run(['git', 'rev-parse', 'HEAD'],
-                              cwd=str(_upstream_dir()), capture_output=True, text=True, timeout=10)
+                              cwd=str(_upstream_dir()), capture_output=True, timeout=10,
+                              encoding='utf-8', errors='replace')
         if proc.returncode == 0:
             return proc.stdout.strip()[:8]
     except Exception:  # noqa: BLE001

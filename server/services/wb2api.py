@@ -188,7 +188,8 @@ def read_container_logs(limit: int = 200, timestamps: bool = True) -> list[str]:
         cmd.append('--timestamps')
     cmd.append(config.WB2API_CONTAINER)
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=25)
+        proc = subprocess.run(cmd, capture_output=True, timeout=25,
+                              encoding='utf-8', errors='replace')
         # docker logs 把应用日志写到 stderr
         raw = (proc.stdout or '') + (proc.stderr or '')
         return [ln for ln in raw.splitlines() if ln.strip()]
