@@ -3,8 +3,9 @@
 **WorkBuddy Manager 的 Windows 兼容补丁仓库**
 
 本仓库是 [ithtelab/workbuddy-manager](https://github.com/ithtelab/workbuddy-manager) 的
-**Windows 兼容修复补丁**，只用于让原版管理端在 Windows 上正常运行。
-**不新增功能、不改动业务逻辑、不包含上游、不含原版完整源码。**
+**Windows 兼容修复补丁**，只做一件事：让原版管理端在 Windows 上恢复正常运行。
+
+**不新增功能、不改动业务逻辑、不含上游、不含原版完整源码。**
 
 ---
 
@@ -18,7 +19,8 @@ OpenAI 兼容接口全部由上游 [`workbuddy2api`](https://github.com/Sliverki
 
 ### 2. 单独 clone 本仓库无法运行
 
-本仓库**只有补丁文件，没有原版源码**，clone 下来什么也跑不起来。
+本仓库**只有补丁文件，没有原版源码**，clone 下来什么也跑不起来 —— 没有入口程序、
+没有前端、没有依赖清单。
 
 完整运行需要三样东西同时就位：
 
@@ -27,6 +29,8 @@ OpenAI 兼容接口全部由上游 [`workbuddy2api`](https://github.com/Sliverki
 | 上游 `workbuddy2api` | [Sliverkiss/workbuddy2api](https://github.com/Sliverkiss/workbuddy2api) | 账号池调度 + OpenAI 兼容接口（Docker） |
 | 原版管理端源码 | [ithtelab/workbuddy-manager](https://github.com/ithtelab/workbuddy-manager) | 管理界面 + 对外网关 |
 | Windows 适配补丁 | **本仓库** | 让管理端在 Windows 上跑通 |
+
+三者的正确组合方式见下方[使用方法](#使用方法)。
 
 ### 3. 本项目只做一件事：修复 Windows 兼容性
 
@@ -37,16 +41,16 @@ OpenAI 兼容接口全部由上游 [`workbuddy2api`](https://github.com/Sliverki
 
 ## 本仓库内容：仅新增/修改部分
 
-本仓库不包含原版那 150 多个源文件，只保留以下两新增 / 两修改。
+本仓库**不包含原版那 150 多个源文件**，只保留以下「3 新增 + 1 新增文档 + 3 补丁」。
 
-### 一、新增文件（直接复制到原版对应位置即可）
+### 一、新增文件（直接复制到原版管理端根目录）
 
-| 文件 | 放到原版的位置 | 用途 |
-|---|---|---|
-| `start-manager.ps1` | 仓库根目录 | 启动管理端，等价于原版 Linux 版 systemd 服务，内置全部环境变量 |
-| `stop-manager.ps1` | 仓库根目录 | 停止管理端，并清理残留的端口监听进程 |
-| `status-manager.ps1` | 仓库根目录 | 查看管理端进程、端口、健康检查与上游容器状态 |
-| `部署说明-Windows.md` | 仓库根目录 | 本机部署说明，含 PowerShell 环境变量写法差异 |
+| 文件 | 用途 |
+|---|---|
+| `start-manager.ps1` | 启动管理端，等价于原版 Linux 版 systemd 服务，内置全部环境变量 |
+| `stop-manager.ps1` | 停止管理端，并清理残留的端口监听进程 |
+| `status-manager.ps1` | 查看管理端进程、端口、健康检查与上游容器状态 |
+| `部署说明-Windows.md` | 本机部署说明，含 PowerShell 环境变量写法差异 |
 
 ### 二、修改文件（只提供补丁，需应用到原版源码）
 
@@ -75,11 +79,13 @@ UnicodeDecodeError: 'gbk' codec can't decode byte 0xaa in position 158
 
 ## 使用方法
 
+> 前提：本仓库需要与原版管理端源码**配合使用**，不能单独运行。
+
 ### 前提条件
 
 | 依赖 | 要求 | 用途 |
 |---|---|---|
-| Python | ≥ 3.9 | 运行管理端 |
+| Python | ≥ 3.11 | 运行管理端 |
 | Node.js | ≥ 18 | 构建前端（仅首次需要） |
 | Docker Desktop | 已运行 | 跑上游 workbuddy2api |
 | Git | 任意版本 | 拉取代码与应用补丁 |
@@ -110,26 +116,42 @@ cd workbuddy-manager
 > 目录名建议保持 `workbuddy-manager`，并与上游 `workbuddy2api` **同级**，
 > 因为 `start-manager.ps1` 会按同级目录自动推算上游路径。
 
-### 第三步：应用本仓库（两种方式任选）
+### 第三步：应用本仓库（二选一）
 
-**方式 A：用 git 拉取补丁仓库（推荐，便于后续更新）**
+**方式 A：用 git 取文件（推荐）**
+
+⚠️ 不要用 `git merge`：本仓库的 `README.md`、`.gitignore` 与原版同名，
+merge 会触发 add/add 冲突，或直接覆盖掉原版这两份文件。
+
+正确做法是只取本仓库的文件，不合并历史：
 
 ```powershell
+# 仍在 workbuddy-manager 目录下
 git remote add winpatch https://github.com/zfgy-ma/WorkBuddy-Manager-on-Windows.git
 git fetch winpatch
-git merge winpatch/main --allow-unrelated-histories
+git checkout winpatch/main -- start-manager.ps1 stop-manager.ps1 status-manager.ps1 部署说明-Windows.md patches
+
+# 应用 3 个补丁
+git apply patches\wb2api-编码修复.patch
+git apply patches\updater-编码修复.patch
+git apply patches\gitignore-忽略旧内容.patch
 ```
 
 **方式 B：手工复制**
 
 1. 下载本仓库，把 4 个新增文件复制到原版管理端**根目录**；
-2. 逐个应用 3 个补丁：
+2. 把 `patches\` 目录一并复制过去，再逐个应用补丁：
 
 ```powershell
-git apply 路径\patches\wb2api-编码修复.patch
-git apply 路径\patches\updater-编码修复.patch
-git apply 路径\patches\gitignore-忽略旧内容.patch
+git apply patches\wb2api-编码修复.patch
+git apply patches\updater-编码修复.patch
+git apply patches\gitignore-忽略旧内容.patch
 ```
+
+补丁应用成功的标志：`git status` 显示 `server/services/wb2api.py`、
+`server/services/updater.py`、`.gitignore` 三处被修改。
+若提示 `patch does not apply`，说明原版这两处代码已变动，
+请按本文「[原理说明](#原理说明为什么-windows-上会出错)」自行调整。
 
 ### 第四步：构建前端与 Python 环境
 
@@ -199,11 +221,11 @@ Get-Content .\data\manager.err.log -Tail 50         # 错误与启动信息
 docker logs -f workbuddy2api
 ```
 
-### 端口说明
+### 网页端口
 
 | 服务 | 端口 | 说明 |
 |---|---|---|
-| 管理网页 | **7864** | 浏览器访问 http://127.0.0.1:7864 |
+| **管理网页** | **7864** | 浏览器访问 http://127.0.0.1:7864（本仓库默认值） |
 | 上游反代 API | 7863 | OpenAI 兼容接口，由上游提供 |
 
 管理端绑定 `0.0.0.0`，同一局域网可用 `http://本机IP:7864` 访问。
@@ -211,6 +233,12 @@ docker logs -f workbuddy2api
 
 ```powershell
 New-NetFirewallRule -DisplayName "WorkBuddy Manager 7864" -Direction Inbound -Protocol TCP -LocalPort 7864 -Action Allow
+```
+
+端口可用 `-Port` 参数修改：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\start-manager.ps1 -Daemon -Port 8080
 ```
 
 ### 环境变量怎么设置（PowerShell 与 bash 的差异）
@@ -223,13 +251,25 @@ WB_DATA_DIR=./data \
 python -m uvicorn server.main:app
 ```
 
-PowerShell 的等价写法是 `$env:` 前缀，且不能用 `\` 续行：
+在 PowerShell 里粘贴这段会直接报错：
+
+```
+WB_ADMIN_PASSWORD=xxx : 术语 'WB_ADMIN_PASSWORD=xxx' 不会被识别为 cmdlet、函数、脚本文件或可执行程序的名称。
+```
+
+原因是 PowerShell 没有「命令前赋值」语法，`$env:` 前缀才是环境变量：
 
 ```powershell
 $env:WB_ADMIN_PASSWORD = 'xxx'
 $env:WB_DATA_DIR = './data'
 .\venv\Scripts\python.exe -m uvicorn server.main:app --port 7864
 ```
+
+注意三条：
+
+1. 等号两侧**不要有空格**以外的符号，字符串用引号包住；
+2. **不能用 `\` 续行**，一行一个变量；
+3. `$env:` 只对**当前会话**有效，关掉窗口即失效。
 
 本项目已把全部环境变量写进 `start-manager.ps1`，**一般无需手工设置**。
 
@@ -296,6 +336,9 @@ proc = subprocess.run(cmd, capture_output=True, timeout=25,
 | 上游 workbuddy2api | 最新 main 分支 |
 | 验证环境 | Windows 11 + Python 3.12 + Node 24 + Docker Desktop 29 |
 
+验证方式：全新 clone 原版 v1.0.11 → 取本仓库文件 → 应用 3 个补丁 →
+`python -m unittest discover -s server/tests -t .`，**102 个测试全部通过**。
+
 > 原版后续升级后，若这两处代码未变，补丁仍可直接应用；
 > 若已变动导致冲突，请重新按本文「原理说明」自行调整。
 
@@ -306,3 +349,5 @@ proc = subprocess.run(cmd, capture_output=True, timeout=25,
 - 管理端原版：[ithtelab/workbuddy-manager](https://github.com/ithtelab/workbuddy-manager)
 - 上游反代：[Sliverkiss/workbuddy2api](https://github.com/Sliverkiss/workbuddy2api)
 - 本仓库许可：MIT（同原版）
+
+本仓库所有代码均来自上述上游，仅做 Windows 兼容性修补，版权归原作者所有。
