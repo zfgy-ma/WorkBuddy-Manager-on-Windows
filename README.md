@@ -32,7 +32,18 @@ OpenAI 兼容接口全部由上游 [`workbuddy2api`](https://github.com/Sliverki
 
 三者的正确组合方式见下方[使用方法](#使用方法)。
 
-### 3. 本项目只做一件事：修复 Windows 兼容性
+### 3. 分支说明
+
+| 分支 | 内容 | 用途 |
+|---|---|---|
+| `main` | **只有新增/修改部分**（本 README 所述内容） | 默认分支，给原版打补丁用 |
+| `archive/original` | 原版管理端完整源码（v1.0.11） | 仅作备份，便于对照 |
+| `archive/original-with-patch` | 原版 + 补丁的完整代码 | 仅作备份，便于对照 |
+
+**只有 `main` 分支是给使用者用的。** `archive/` 分支为备份，内容属原版作者，
+请以 [ithtelab/workbuddy-manager](https://github.com/ithtelab/workbuddy-manager) 为准。
+
+### 4. 本项目只做一件事：修复 Windows 兼容性
 
 本仓库仅解决原版管理端在 Windows 上无法运行的问题。
 **Linux 用户请直接使用原版，不需要本仓库。**
