@@ -148,6 +148,13 @@ git apply patches\updater-编码修复.patch
 git apply patches\gitignore-忽略旧内容.patch
 ```
 
+> 两点注意：
+>
+> 1. `git checkout` 会把取到的文件放进暂存区（`git status` 显示为 `A`），
+>    不想要它们进版本库就别 `git commit`，不影响运行；
+> 2. 本仓库目前是**私有仓库**，`git fetch` 会要求 GitHub 登录凭证。
+>    拿不到权限时请改用方式 B（直接下载文件）。
+
 **方式 B：手工复制**
 
 1. 下载本仓库，把 4 个新增文件复制到原版管理端**根目录**；
