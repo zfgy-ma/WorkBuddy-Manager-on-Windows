@@ -141,8 +141,7 @@ git checkout winpatch/main -- server/services/wb2api.py server/services/updater.
 >
 > 1. `git checkout` 会把取到的文件放进暂存区（`git status` 显示为 `A`/`M`），
 >    不想要它们进版本库就别 `git commit`，不影响运行；
-> 2. 本仓库目前是**私有仓库**，`git fetch` 会要求 GitHub 登录凭证。
->    拿不到权限时请改用方式 B。
+> 2. 本仓库是公开仓库，`git fetch` 无需登录凭证（若你曾配置代理或凭证助手可能仍会提示）。
 
 **方式 B：下载后直接覆盖（最直观）**
 

@@ -1,7 +1,7 @@
-﻿# Windows 部署说明（本机）
+﻿# Windows 部署说明
 
 本项目官方部署脚本 `deploy/install.sh` 面向 Linux + systemd。
-本机为 Windows，因此改用配套的 PowerShell 脚本完成同等部署。
+Windows 下改用本仓库配套的 PowerShell 脚本完成同等部署。
 
 ---
 
@@ -9,8 +9,8 @@
 
 | 组件 | 位置 | 地址 | 说明 |
 |---|---|---|---|
-| 管理端 | `C:\Users\31020\Desktop\Workbuddy反代\workbuddy-manager` | http://127.0.0.1:7864 | FastAPI + 已构建的静态前端 |
-| 上游 workbuddy2api | `C:\Users\31020\Desktop\Workbuddy反代\workbuddy2api` | http://127.0.0.1:7863 | Docker 容器 `workbuddy2api` |
+| 管理端 | `C:\你的目录\workbuddy-manager` | http://127.0.0.1:7864 | FastAPI + 已构建的静态前端 |
+| 上游 workbuddy2api | `C:\你的目录\workbuddy2api` | http://127.0.0.1:7863 | Docker 容器 `workbuddy2api` |
 
 管理端数据目录：`data\`（SQLite、用户与会话密钥，**含敏感信息，勿外传**）
 
@@ -80,24 +80,24 @@ $env:WB2API_KEY = '上游密钥'
 
 - 部署时若已指定 `-AdminPassword`，就是那个密码；
 - 否则查看 `data\manager.err.log`，搜索「初始管理员」；
-- 历史密码记录在本目录 `data\_init_pwd.txt`。
+- 历史密码记录在管理端目录 `data\_init_pwd.txt`。
 
 ---
 
-## 五、与本机 Docker 的关系
+## 五、与 Docker 的关系
 
 管理端通过 `docker` 命令操作上游容器（读取日志、重启），因此：
 
 - **Docker Desktop 必须处于运行状态**，否则管理端读不到上游状态；
 - 上游容器名为 `workbuddy2api`，可通过 `WB2API_CONTAINER` 修改；
 - 管理端配置的端口绑定为 `0.0.0.0`，局域网内其他设备也可访问
-  （本机 IP 形如 `http://192.168.x.x:7864`）。
+  （局域网 IP 形如 `http://192.168.x.x:7864`）。
 
 ---
 
 ## 六、若部署在公网服务器
 
-本机的 Windows 脚本不能直接搬到 Linux 服务器。请改用官方流程：
+本仓库的 Windows 脚本不能直接搬到 Linux 服务器。请改用官方流程：
 
 ```bash
 git clone https://github.com/ithtelab/workbuddy-manager.git
