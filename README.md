@@ -37,7 +37,7 @@ OpenAI 兼容接口全部由上游 [`workbuddy2api`](https://github.com/Sliverki
 | 分支 | 内容 | 用途 |
 |---|---|---|
 | `main` | **只有新增/修改部分**（本 README 所述内容） | 默认分支，给原版打补丁用 |
-| `archive/original` | 原版管理端完整源码（v1.0.11） | 仅作备份，便于对照 |
+| `archive/original` | 原版管理端完整源码（对应 `00d623c`） | 仅作备份，便于对照 |
 | `archive/original-with-patch` | 原版 + 补丁的完整代码 | 仅作备份，便于对照 |
 
 **只有 `main` 分支是给使用者用的。** `archive/` 分支为备份，内容属原版作者，
@@ -52,7 +52,7 @@ OpenAI 兼容接口全部由上游 [`workbuddy2api`](https://github.com/Sliverki
 
 ## 本仓库内容：仅新增/修改部分
 
-本仓库**不包含原版那 150 多个源文件**，只保留以下「3 新增 + 1 新增文档 + 3 补丁」。
+本仓库**不包含原版的那 155 个文件**，只保留以下「3 新增 + 1 新增文档 + 3 补丁」。
 
 ### 一、新增文件（直接复制到原版管理端根目录）
 
@@ -343,12 +343,20 @@ proc = subprocess.run(cmd, capture_output=True, timeout=25,
 
 | 项目 | 版本 |
 |---|---|
-| 原版管理端 | v1.0.11（对应 commit `00d623c`） |
+| 原版管理端 | 默认分支 `00d623c`（v1.0.11 标签之后 3 个提交） |
 | 上游 workbuddy2api | 最新 main 分支 |
 | 验证环境 | Windows 11 + Python 3.12 + Node 24 + Docker Desktop 29 |
 
-验证方式：全新 clone 原版 v1.0.11 → 取本仓库文件 → 应用 3 个补丁 →
-`python -m unittest discover -s server/tests -t .`，**102 个测试全部通过**。
+验证方式：全新 clone 原版 → 取本仓库文件 → 应用 3 个补丁 →
+`python -m unittest discover -s server/tests -t .`，单元测试全部通过：
+
+| 原版版本 | 补丁是否干净应用 | 测试结果 |
+|---|---|---|
+| 默认分支 `00d623c` | 是 | 102 个测试通过 |
+| `v1.0.11` 标签 | 是 | 94 个测试通过 |
+
+两个版本的 `wb2api.py`、`updater.py`、`.gitignore` 与被改动的三处完全一致，
+因此同一份补丁可同时适用于它们。
 
 > 原版后续升级后，若这两处代码未变，补丁仍可直接应用；
 > 若已变动导致冲突，请重新按本文「原理说明」自行调整。
