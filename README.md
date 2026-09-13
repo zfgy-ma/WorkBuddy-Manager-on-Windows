@@ -1,22 +1,22 @@
 # WorkBuddy Manager-on-Windows（本地运行实例）
 
 本目录是 [ithtelab/workbuddy-manager](https://github.com/ithtelab/workbuddy-manager)
-的 Windows 兼容运行副本，只加了 Windows 适配补丁，**不改业务逻辑、不含上游**。
+的 Windows 兼容运行副本，**只修复 Windows 兼容性，不改业务逻辑、不含上游**。
 
-> **完整说明请看补丁仓库**：
+> **完整说明与替换文件请见**：
 > [zfgy-ma/WorkBuddy-Manager-on-Windows](https://github.com/zfgy-ma/WorkBuddy-Manager-on-Windows)
-> 本文件只记录本机这一份的运行信息，避免两处文档各自漂移。
+> 本文件只记录这一份实例的运行信息，改动清单以该仓库 README 为准。
 
 ---
 
-## 本目录的改动（相对原版）
+## 本目录相对原版的改动
 
 | 类型 | 文件 | 说明 |
 |---|---|---|
 | 新增 | `start-manager.ps1` | 启动管理端（等价原版 systemd 服务，内置环境变量） |
 | 新增 | `stop-manager.ps1` | 停止管理端并清理残留端口进程 |
 | 新增 | `status-manager.ps1` | 查看进程、端口、健康检查、上游容器状态 |
-| 新增 | `部署说明-Windows.md` | 本机部署说明 |
+| 新增 | `部署说明-Windows.md` | Windows 部署说明 |
 | 修改 | `server/services/wb2api.py` | `read_container_logs()` 显式 UTF-8 解码 |
 | 修改 | `server/services/updater.py` | `_local_upstream_head()` 显式 UTF-8 解码 |
 | 修改 | `.gitignore` | 忽略 `旧内容/` |
@@ -50,7 +50,7 @@ powershell -ExecutionPolicy Bypass -File .\stop-manager.ps1
 
 ---
 
-## 本机运行信息
+## 运行信息
 
 - 依赖上游目录 `..\workbuddy2api`（与本目录同级），`start-manager.ps1` 自动推算；
 - 数据目录 `data\`：SQLite、`users.json`、PID 与日志，**含敏感信息，勿外传**；
@@ -61,10 +61,10 @@ powershell -ExecutionPolicy Bypass -File .\stop-manager.ps1
 
 ## 本仓库的分支
 
-| 分支 | 内容 |
-|---|---|
-| `windows-deploy` | 原版 v1.0.11 + 上述 Windows 补丁（当前使用） |
-| `main` | 原版 v1.0.11，未改动 |
+| 分支 | 内容 | 用途 |
+|---|---|---|
+| `main` | 只有新增/修改的文件 | 覆盖到原版用（**推荐**） |
+| `archive/original-with-patch` | 原版 `00d623c` + 上述修复的完整源码 | 本分支，仅作备份 |
+| `archive/original` | 原版 `00d623c` 完整源码 | 仅作备份，未改动 |
 
-原版完整文档见 [ithtelab/workbuddy-manager](https://github.com/ithtelab/workbuddy-manager)；
-本机另存的改动前 README 在 `旧内容\` 下。
+原版完整文档见 [ithtelab/workbuddy-manager](https://github.com/ithtelab/workbuddy-manager)。
