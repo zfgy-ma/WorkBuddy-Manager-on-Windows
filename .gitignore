@@ -1,0 +1,7 @@
+# 本仓库为补丁仓库，不应出现原版运行时数据
+data/
+venv/
+node_modules/
+web/out/
+旧内容/
+*.log
